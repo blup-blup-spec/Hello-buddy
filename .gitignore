@@ -1,0 +1,35 @@
+# Build outputs
+build/
+*.class
+*.elf
+*.bin
+*.hex
+
+# Android secrets – NEVER commit these
+google-services.json
+*.keystore
+*.jks
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+**/build/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.suo
+*.user
+
+# Credentials file (use config.h template instead)
+config_secrets.h
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini

@@ -1,0 +1,937 @@
+% Hello Buddy -- Electronic Product Development Report
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}            % Times New Roman font
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\usepackage{needspace}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\renewcommand{\arraystretch}{1.35}
+
+% Column types
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+
+\begin{document}
+
+% ====================================================================
+%                           TITLE
+% ====================================================================
+\begin{center}
+    {\Large\bfseries Electronic Product Development}\\[0.6cm]
+    {\large\bfseries Product: Hello Buddy}\\[0.15cm]
+    {\large Desktop Companion and Study Assistant Robot}\\[0.5cm]
+    {\normalsize Group Number: 09 \qquad Lead: Ziaur Rahaman \qquad Date: August 17, 2026}
+\end{center}
+
+\vspace{0.3cm}
+\hrule
+\vspace{0.4cm}
+
+% ====================================================================
+%                             AIM
+% ====================================================================
+\section*{Aim}
+
+To develop a comprehensive requirements specification for \textbf{Hello Buddy}, a stationary
+desktop companion and study-assistant robot, by engaging multiple stakeholders using formal
+techniques and documenting the requirements following ISO/IEC/IEEE 29148 and ISO 9001
+guidelines.
+
+% ====================================================================
+%                    EQUIPMENT / SOFTWARE
+% ====================================================================
+\section*{Equipment / Software Required}
+
+\begin{itemize}[leftmargin=*]
+\item Laptop with Arduino IDE (2.x) and ESP32-S3 board support package installed.
+\item ESP32-S3 N16R8 development board (16\,MB flash, 8\,MB PSRAM).
+\item Hardware peripherals: GC9A01 round TFT display, SSD1306 OLED
+      128$\times$64, DFPlayer Mini, INMP441 I2S microphone, VL53L0X ToF
+      sensor, TTP223 capacitive touch sensor $\times$2, SG90 micro-servo
+      $\times$4, LM386 audio amplifier, 8\,$\Omega$ speaker, 7.4\,V LiPo
+      battery, UBEC 5\,V/3\,A regulator.
+\item Cloud and API services: LLM inference via Groq, DeepSeek, Gemini API,
+      or any locally hosted LLM (e.g., Ollama); Firebase Realtime Database
+      for persistent memory and task storage; FastAPI backend (Python)
+      running on a PC/server.
+\item Android/iOS smartphone for the companion Flutter application.
+\item 3D-printed enclosure (PLA filament, $\sim$150\,g) based on the
+      EMOtto STL body.
+\item Tools: soldering station, multimeter, USB-C cable, microSD card
+      ($\leq$32\,GB, FAT32).
+\item Reference: ISO/IEC/IEEE 29148:2018 for requirement attributes and
+      documentation structure.
+\end{itemize}
+
+% ====================================================================
+%                           THEORY
+% ====================================================================
+\section*{Theory}
+
+After gathering requirements, the analyst reviews and analyses them to understand the
+exact customer needs and resolve contradictions, ambiguities, and incomplete information.
+
+This is necessary because stakeholders often have partial views of the system.
+The analyst engages in further discussions to address these problems.
+
+Effective requirements analysis involves answering key questions, such as:
+
+\begin{itemize}[leftmargin=*]
+\item What problem does Hello Buddy solve, and why is physical presence
+      important?
+\item What are the system inputs (voice, touch, proximity) and outputs
+      (expressions, audio, OLED, servo motion)?
+\item What procedures are needed for the Pomodoro study loop and task
+      management?
+\item What complexities arise from simultaneous display rendering, audio
+      playback, and API calls?
+\item How will Hello Buddy interface with external LLM APIs (Groq,
+      DeepSeek, Gemini, or a local LLM), Firebase, and the Flutter app?
+\end{itemize}
+
+Once the customer requirements are clearly understood, the analyst identifies and
+resolves anomalies, including ambiguities that could cause misinterpretations during
+development.
+
+% ====================================================================
+%                          PROCEDURE
+% ====================================================================
+\newpage
+\section*{Procedure}
+
+\subsection*{Pre-Requirements Activities}
+
+\textbf{a.\ Stakeholder Identification}
+
+\begin{enumerate}[leftmargin=*]
+\item List all stakeholders: students (primary users), Faculty-in-Charge,
+      firmware engineers, Flutter app developers, hardware assembly
+      engineers, and regulatory/safety reviewers.
+\item Use organisational charts, brainstorming sessions, and focus-group
+      discussions.
+\end{enumerate}
+
+\vspace{0.3cm}
+
+\textbf{Stakeholder Examples}
+
+\begin{center}
+\begin{tabular}{|L{0.28\textwidth}|L{0.58\textwidth}|}
+\hline
+\textbf{Stakeholder Type} & \textbf{Examples} \\ \hline
+Customer / User & Students using Hello Buddy while studying
+                  (interviewed: Atanu Hazra, B.Tech 2nd Year;
+                  Arka Ghosh, B.Tech 3rd Year) \\ \hline
+Technical Staff & Firmware engineers (Arduino/FreeRTOS), app
+                  developers (Flutter), PCB designers \\ \hline
+Management & Project lead, QA reviewer, Faculty-in-Charge \\ \hline
+Regulatory & Compliance officers reviewing CE/FCC,
+             IEC 62133 (LiPo battery safety) \\ \hline
+\end{tabular}
+\end{center}
+
+\subsection*{Requirements Elicitation Techniques}
+
+\textbf{Structured Interviews}
+\begin{itemize}[leftmargin=*]
+\item Two structured user-validation interviews were conducted with
+      students across different academic years to understand real desk
+      habits, pain points, and expectations.
+\item Each interview comprised 15 questions covering study behaviour,
+      product reaction, feature preferences, design opinions, and
+      willingness to pay.
+\item Responses were documented verbatim and analysed for recurring
+      patterns before the group discussion.
+\end{itemize}
+
+\textbf{Group Discussions / Workshops}
+\begin{itemize}[leftmargin=*]
+\item A formal group discussion was held after the interviews, using the
+      interview findings as the primary reference.
+\item All four members participated: Ziaur Rahaman, Aryan Raj, Shamil
+      Minhaj, and Ayush Dutta.
+\item Key design decisions (stationary design, customisable expressions,
+      wake-word microphone, Pomodoro integration) were formally agreed
+      upon and documented in the group discussion minutes.
+\end{itemize}
+
+\textbf{Questionnaires / Surveys}
+\begin{itemize}[leftmargin=*]
+\item Used for broader stakeholder input to gauge preferred price range,
+      feature priority, and willingness to use voice commands.
+\item Included both qualitative and quantitative questions.
+\end{itemize}
+
+\textbf{Observation and Site Visits}
+\begin{itemize}[leftmargin=*]
+\item Observed real-world desk study behaviour and distraction patterns
+      among students.
+\item Identified that phone distraction (social media and short-form
+      video) was the single biggest obstacle to sustained focus, as
+      confirmed by both interviewees.
+\end{itemize}
+
+\textbf{Review Existing Documentation}
+\begin{itemize}[leftmargin=*]
+\item Studied similar open-source projects (Otto DIY, EMOtto\_ESP32 on
+      Printables.com) and competitor products (Loona, Vector, ElliQ)
+      for feature benchmarking.
+\end{itemize}
+
+% ====================================================================
+%              KEY FINDINGS FROM USER INTERVIEWS
+% ====================================================================
+\newpage
+\subsection*{Key Findings from User Interviews}
+
+The following consistent patterns emerged across both interviews
+(Atanu Hazra, B.Tech 2nd Year; Arka Ghosh, B.Tech 3rd Year):
+
+\begin{itemize}[leftmargin=*]
+\item Both participants spent 4 to 7 hours at their desks daily and
+      described their workspaces as monotonous and uninspiring.
+\item Phone distraction was identified as the single biggest obstacle
+      to sustained focus, with social media and short-form video being
+      the primary culprits.
+\item Both responded positively to a physical, expressive companion on
+      the desk, preferring it over another app-based solution.
+\item A round, face-like display was strongly preferred over a flat
+      rectangular screen, as it communicated personality rather than
+      functionality alone.
+\item Customisable expressions and sounds were considered essential to
+      prevent the product from feeling generic over time.
+\item Both raised concerns about the microphone being always active,
+      requesting a wake-word system with a visible LED indicator and
+      a physical disable button.
+\item A stable, stationary placement was preferred over a walking or
+      movable design, as both cited the risk of the robot falling from
+      the desk and damaging itself.
+\item Reward-based expressions (e.g., a proud or happy face after
+      completing a study session) were identified as a strong
+      motivational feature.
+\item Perceived value ranged from Rs.\,3{,}500 to Rs.\,4{,}500, which
+      is above the planned retail price of Rs.\,3{,}000--- confirming
+      a strong value proposition.
+\end{itemize}
+
+These findings directly shaped the group discussion decisions and all
+subsequent design requirements documented in this report.
+
+% ====================================================================
+%                    SAMPLE INTERVIEW TEMPLATE
+% ====================================================================
+\subsection*{Sample Interview Template (Based on Conducted Interviews)}
+
+\begin{center}
+\scriptsize
+\begin{tabular}{|L{0.28\textwidth}|L{0.14\textwidth}|L{0.24\textwidth}|L{0.24\textwidth}|}
+\hline
+\textbf{Question} & \textbf{Stakeholder} &
+\textbf{Response (Atanu Hazra)} &
+\textbf{Response (Arka Ghosh)} \\ \hline
+How many hours do you spend at your desk daily? &
+User (Student) &
+4 to 6 hours; more during exams. &
+5 to 7 hours; up to 10 during deadlines. \\ \hline
+Does your desk feel motivating or boring? &
+User (Student) &
+Boring mostly. Just a laptop and books. &
+Mostly boring. Feels more like a workstation
+than a place I want to be at. \\ \hline
+Do you get distracted easily while studying? &
+User (Student) &
+Yes, constantly. Phone is the biggest problem. &
+Yes. Instagram and YouTube--- open for one minute,
+lose 30 minutes. \\ \hline
+What is your first reaction to Hello Buddy? &
+User (Student) &
+Sounds really cool. The auto wake-up is a
+nice detail. &
+Really interesting. Something physical on the
+desk feels different from just another app. \\ \hline
+What feature excites you the most? &
+User (Student) &
+Face expressions and interactivity. Makes it
+feel alive. &
+Study timer with expressions. A happy face after
+completing a session is motivating. \\ \hline
+Would you prefer a round face or a flat screen? &
+User (Student) &
+Round. Feels more like a face. Rectangle
+feels like a device. &
+Round, for sure. Reads as a character rather
+than a gadget. \\ \hline
+Movable legs or stable single-place design? &
+User (Student) &
+Stable. If it falls from the table it could
+get damaged. &
+Stable. Movable parts mean more things that can
+break. Risky near a laptop. \\ \hline
+Does anything make you uncomfortable? &
+User (Student) &
+The microphone. Don't want it always listening. &
+Always-on mic is a concern. Want a physical LED
+indicator and a disable button. \\ \hline
+What would make you stop using it after a week? &
+User (Student) &
+Bad battery life and repetitive sounds I cannot
+change. &
+Repetitive and predictable responses. Also poor
+battery backup. \\ \hline
+How much would you pay? &
+User (Student) &
+Around Rs.\,4{,}000 or more if it actually works
+properly. &
+Rs.\,3{,}500 to 4{,}500 depending on build quality
+and how well features work. \\ \hline
+\end{tabular}
+\end{center}
+
+\vspace{0.3cm}
+
+\subsection*{Group Discussion Decisions}
+
+Based on the interview insights, the group formally agreed on the
+following design decisions:
+
+\begin{enumerate}[leftmargin=*]
+\item Hello Buddy will be a \textbf{stationary desktop device} with a
+      round, face-like display and an optional subtle tilt mechanism
+      for physical expressiveness.
+\item The facial expression system will support both \textbf{graphical
+      and ASCII-style} displays (e.g., \texttt{\^{}\_\^{}},
+      \texttt{-\_-}, \texttt{T\_T}), with user-customisable expression
+      sets and sound profiles.
+\item A \textbf{Pomodoro-integrated study timer} will be a core
+      built-in feature, with emotional expression feedback tied to
+      each session phase (work, short break, long break).
+\item The voice system will use a \textbf{wake-word model} with a
+      hardware LED indicator and a physical microphone disable button
+      to address privacy concerns.
+\item A \textbf{companion mobile application} will manage
+      customisation, task tracking, reminders, and session analytics.
+\item \textbf{Power management} will be prioritised with an automatic
+      sleep mode when the desk is unoccupied, detected via the
+      VL53L0X proximity sensor.
+\end{enumerate}
+
+% ====================================================================
+%                 CLASSIFYING REQUIREMENTS
+% ====================================================================
+\section*{Classifying Requirements Using Taxonomy}
+
+Requirements are organised into a taxonomy to avoid duplication and ensure full
+coverage. For Hello Buddy, requirements are classified into hardware, firmware,
+cloud/API, and application layers.
+
+\subsection*{Requirements Taxonomy Table}
+
+\begin{center}
+\small
+\begin{tabular}{|L{0.13\textwidth}|L{0.15\textwidth}|L{0.38\textwidth}|L{0.20\textwidth}|}
+\hline
+\textbf{Category} & \textbf{Sub-Category} &
+\textbf{Examples for Hello Buddy} &
+\textbf{Type} \\ \hline
+Hardware & Display &
+GC9A01 round TFT must render animated expressions at
+$\geq$10\,FPS. &
+Functional \\ \hline
+Hardware & Sensors &
+VL53L0X must detect user presence within 10--60\,cm. &
+Functional \\ \hline
+Hardware & Power &
+Device must operate $\geq$6\,h on 7.4\,V 1200\,mAh LiPo. &
+Non-Functional (Reliability) \\ \hline
+Hardware & Audio &
+DFPlayer Mini must play MP3 files with $<$300\,ms latency. &
+Non-Functional (Performance) \\ \hline
+Firmware & Task Scheduling &
+FreeRTOS must manage display, audio, servo, and WiFi
+concurrently without deadlock. &
+Non-Functional (Stability) \\ \hline
+Firmware & Wake Word &
+System must detect ``Hey Buddy'' within 2\,s of utterance. &
+Functional \\ \hline
+Cloud/API & LLM Integration &
+LLM API (Groq/DeepSeek/Gemini/local) must return a JSON
+action plan within 2\,s over WiFi. &
+Non-Functional (Performance) \\ \hline
+Cloud/API & Persistence &
+Firebase Realtime DB must sync task list with
+$<$500\,ms latency. &
+Non-Functional (Performance) \\ \hline
+Application & UI &
+Flutter app must display live task list, Pomodoro timer,
+and Hello Buddy status on one dashboard. &
+Functional \\ \hline
+Application & Security &
+All API keys must be stored server-side; never exposed
+to the Flutter app. &
+Non-Functional (Security) \\ \hline
+\end{tabular}
+\end{center}
+
+% ====================================================================
+%              REQUIREMENTS DOCUMENTATION
+% ====================================================================
+\newpage
+\section*{Requirements Documentation}
+
+\subsection*{Functional vs.\ Non-Functional Requirements Taxonomy}
+
+\begin{center}
+\begin{tabular}{|L{0.25\textwidth}|L{0.63\textwidth}|}
+\hline
+\textbf{Type} & \textbf{Description / Examples} \\ \hline
+Functional & Wake-word detection, proximity auto-wake, touch reaction,
+             face expression change, Pomodoro timer, voice task addition,
+             Spotify playback trigger, OLED status display \\ \hline
+Non-Functional & API response $<$2\,s; battery $\geq$6\,h; concurrent
+                 FreeRTOS tasks without jitter; no continuous microphone
+                 recording \\ \hline
+External Interface & LLM API (Groq/DeepSeek/Gemini/local via REST/HTTPS),
+                     Firebase Realtime DB (WebSocket), Spotify Web API,
+                     Flutter app over local HTTP/WebSocket \\ \hline
+Design Constraints & ESP32-S3 Arduino IDE/FreeRTOS; fits inside EMOtto STL
+                     body; 3.3\,V/5\,V circuits only; stationary desktop
+                     design \\ \hline
+\end{tabular}
+\end{center}
+
+\subsection*{Capturing Requirements Attributes (ISO/IEC/IEEE 29148)}
+
+Each requirement carries the following attributes:
+
+\begin{center}
+\begin{tabular}{|L{0.25\textwidth}|L{0.63\textwidth}|}
+\hline
+\textbf{Attribute} & \textbf{Description} \\ \hline
+Id & Unique identifier (e.g., HW-001, FW-002, API-001, APP-001) \\ \hline
+Heading & Short name (e.g., ``GC9A01 Frame Rate'') \\ \hline
+Text & Intent / description of the requirement \\ \hline
+Owner & Who maintains this requirement \\ \hline
+Priority & Must / Should / Could / Won't (MoSCoW) \\ \hline
+Source & User interview, group discussion, or regulatory review \\ \hline
+Rationale & Reason for inclusion \\ \hline
+Difficulty & Estimated implementation difficulty \\ \hline
+Type & Functional / Non-Functional / Interface / Constraint \\ \hline
+Status & Draft / Reviewed / Approved \\ \hline
+Verification Method & Test, Demonstration, Inspection, Analysis \\ \hline
+\end{tabular}
+\end{center}
+
+% ====================================================================
+%                    AFFINITY DIAGRAM
+% ====================================================================
+\section*{Affinity Diagram}
+
+Brainstorming sessions were conducted with all four group members to gather diverse
+input. The stated problem was: \textit{``How can a physical desk object help a student
+stay focused, accountable, and motivated without becoming a distraction itself?''}
+
+Participants wrote ideas on digital sticky notes, presented them, and grouped them on
+a shared board. After multiple rounds, ideas were organised into five clusters:
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Physical Presence and Accountability} --- proximity detection,
+      worried face when user is inactive, passive monitoring via VL53L0X.
+\item \textbf{Emotional Expression} --- animated face on GC9A01, customisable
+      ASCII expressions (e.g., \texttt{\^{}\_\^{}}, \texttt{-\_-},
+      \texttt{T\_T}), state-based emotion mapping.
+\item \textbf{Study Assistance} --- Pomodoro timer, voice task management,
+      OLED task display, Spotify playlist control.
+\item \textbf{Connectivity} --- LLM API (Groq/DeepSeek/Gemini/local) for
+      intelligence, Firebase for memory, Flutter app for control and
+      statistics.
+\item \textbf{Safety and Privacy} --- wake-word-only microphone activation,
+      no continuous recording, voltage-limited circuits.
+\end{enumerate}
+
+Using affinity diagrams, Voices of Customer (VOCs) from user interviews were mapped
+to higher-level needs, which fed into the Kano model classification below.
+
+% ====================================================================
+%                           AHP
+% ====================================================================
+\newpage
+\section*{Analytical Hierarchy Process (AHP)}
+
+Saaty's AHP was applied to rank the top customer needs identified during elicitation.
+Pairwise comparisons were made between five high-level needs using the standard
+1--9 scale.
+
+\textbf{High-level needs compared:}
+\begin{enumerate}[leftmargin=*]
+\item Expressive face display ($N_1$)
+\item Study assistance and task management ($N_2$)
+\item Physical accountability and presence ($N_3$)
+\item Voice interaction ($N_4$)
+\item App connectivity and statistics ($N_5$)
+\end{enumerate}
+
+\textbf{Summary of AHP weightings (derived from group evaluation):}
+
+\begin{center}
+\begin{tabular}{|L{0.45\textwidth}|L{0.20\textwidth}|}
+\hline
+\textbf{Customer Need} & \textbf{Relative Weight} \\ \hline
+Expressive face display & 0.30 \\ \hline
+Physical accountability and presence & 0.25 \\ \hline
+Study assistance and task management & 0.22 \\ \hline
+App connectivity and statistics & 0.14 \\ \hline
+Voice interaction & 0.09 \\ \hline
+\end{tabular}
+\end{center}
+
+The expressive face display received the highest weight, consistent with user interview
+feedback: ``if the face looks wrong or dead, the whole product feels wrong.''
+Customer surveys and evaluations fed into the process, with care taken to avoid bias
+or misleading data.
+
+% ====================================================================
+%                        KANO MODEL
+% ====================================================================
+\section*{Kano Model Integration}
+
+After ranking, needs are classified into three categories:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Exciters (Delighters):} Servo-based body reaction on touch;
+      real-time emotion detection from voice tone via LLM API; customisable
+      ASCII facial expressions; Spotify playlist auto-play when a study
+      session starts.
+\item \textbf{Expected Needs:} Wake-word detection before microphone activates;
+      proximity-based auto-wake; DFPlayer audio reactions to events;
+      OLED task display.
+\item \textbf{Normal (Performance) Needs:} Battery life (more hours is better);
+      API response latency (lower is better); number of face expressions
+      available (more variety reduces repetitive behaviour).
+\end{itemize}
+
+% ====================================================================
+%             DOCUMENTING REQUIREMENTS PER ISO
+% ====================================================================
+\section*{Documenting Hardware and Software Requirements per ISO Guidelines}
+
+\begin{itemize}[leftmargin=*]
+\item Follow ISO/IEC/IEEE 29148:2018 for documentation.
+\item Requirements must be: Necessary, unambiguous, consistent, complete,
+      singular (atomic), verifiable, feasible, traceable.
+\item Structure: Use a hierarchical format with unique IDs
+      (HW-, FW-, API-, APP-).
+\item Validation: All requirements reviewed and approved by group members
+      and Faculty-in-Charge.
+\end{itemize}
+
+% ====================================================================
+%                HARDWARE REQUIREMENTS
+% ====================================================================
+\newpage
+\section*{Hardware Requirements Documentation}
+
+Hardware specifications focus on the ESP32-S3 N16R8 board and all connected
+peripherals.
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Gather and Refine:} Hardware needs identified via structured
+      interviews with team engineers and user feedback sessions.
+\item \textbf{Document in Template:} Use a table format with ISO attributes.
+\end{enumerate}
+
+\subsection*{Hardware Requirements Template Table}
+
+\begin{center}
+\scriptsize
+\begin{tabular}{|L{0.07\textwidth}|L{0.35\textwidth}|L{0.10\textwidth}|L{0.18\textwidth}|L{0.18\textwidth}|}
+\hline
+\textbf{Req.~ID} & \textbf{Description} & \textbf{Priority} &
+\textbf{Verification} & \textbf{Traceability} \\ \hline
+HW-001 &
+GC9A01 round TFT display must render animated face expressions at
+$\geq$10\,FPS via SPI on GPIO 5/17/16/18/23. &
+Must &
+Performance Testing &
+User Interview \\ \hline
+HW-002 &
+SSD1306 OLED 128$\times$64 must display task name, session time,
+tasks remaining, and Pomodoro count via I2C on GPIO 39/40. &
+Must &
+Functional Testing &
+Group Discussion \\ \hline
+HW-003 &
+INMP441 I2S microphone must capture audio on GPIO 41/42/2;
+active only after wake-word trigger, not continuously. &
+Must &
+Inspection / Privacy Audit &
+User Interview \\ \hline
+HW-004 &
+VL53L0X ToF sensor must detect user presence in 10--60\,cm
+range via I2C on GPIO 22/21 with $\leq$50\,ms refresh. &
+Must &
+Lab Testing &
+Group Discussion \\ \hline
+HW-005 &
+DFPlayer Mini must play MP3 responses from microSD within
+$<$300\,ms of trigger via UART on GPIO 32 (RX, 1\,k$\Omega$)
+/ GPIO 4 (TX). &
+Must &
+Timing Test &
+User Interview \\ \hline
+HW-006 &
+Four SG90 servos on hardware PWM pins must execute body-tilt
+and reaction routines without jitter under simultaneous audio
+playback. &
+Must &
+Stress Testing &
+Group Discussion \\ \hline
+HW-007 &
+7.4\,V 1200\,mAh LiPo through UBEC 5\,V/3\,A must sustain
+full operation for $\geq$6 hours. &
+Should &
+Duration Test &
+User Interview \\ \hline
+HW-008 &
+All circuits must operate at 3.3\,V or 5\,V only; LiPo must
+connect via over-current protection (UBEC). &
+Must &
+Inspection &
+Regulatory Review \\ \hline
+\end{tabular}
+\end{center}
+
+% ====================================================================
+%          FIRMWARE REQUIREMENTS
+% ====================================================================
+\newpage
+\section*{Software / Firmware / API Requirements Documentation}
+
+Software specifications cover the ESP32-S3 firmware, the FastAPI backend server,
+and the Flutter companion application. All natural language processing is handled
+by an \textbf{LLM API} (Groq, DeepSeek, Gemini, or any locally hosted LLM such
+as Ollama) over WiFi; no on-device language model is used.
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Gather and Refine:} Requirements elicited through group
+      discussions with developers and feedback from user interviews.
+\item \textbf{Document in Template:} Similar to hardware, but include API
+      endpoints and use cases.
+\end{enumerate}
+
+\subsection*{Firmware Requirements (ESP32-S3)}
+
+\begin{center}
+\scriptsize
+\begin{tabular}{|L{0.07\textwidth}|L{0.35\textwidth}|L{0.10\textwidth}|L{0.18\textwidth}|L{0.18\textwidth}|}
+\hline
+\textbf{Req.~ID} & \textbf{Description} & \textbf{Priority} &
+\textbf{Verification} & \textbf{Traceability} \\ \hline
+FW-001 &
+Firmware must use FreeRTOS to run display, audio, servo, sensor
+polling, and WiFi tasks concurrently without priority inversion
+or deadlock. &
+Must &
+Stress Testing &
+Group Discussion \\ \hline
+FW-002 &
+MicroWakeWord library must detect ``Hey Buddy'' and activate the
+INMP441 microphone; microphone must remain inactive at all other
+times. &
+Must &
+Functional Testing &
+User Interview \\ \hline
+FW-003 &
+On wake-word detection, firmware must record audio, send to
+FastAPI for Whisper STT, receive LLM API JSON action plan, and
+execute within 3\,s end-to-end. &
+Must &
+Timing Test &
+Group Discussion \\ \hline
+FW-004 &
+GC9A01 display must map at least 8 emotion states (Happy, Sad,
+Focused, Stressed, Sleepy, Excited, Neutral, Task Complete) to
+animated sprite sequences. &
+Must &
+Demonstration &
+User Interview \\ \hline
+FW-005 &
+OLED must display scrolling task name, session countdown, tasks
+remaining, and Pomodoro count; updated every second during an
+active session. &
+Must &
+Functional Testing &
+Group Discussion \\ \hline
+FW-006 &
+Touch on TTP223 (GPIO 12/33) must trigger face reaction and
+DFPlayer audio response within $<$200\,ms. &
+Must &
+Timing Test &
+User Interview \\ \hline
+FW-007 &
+VL53L0X must poll every 50\,ms; if no presence detected for
+$>$2\,min during an active session, Hello Buddy must show
+``worried'' face and play an audio check-in. &
+Should &
+Functional Testing &
+Group Discussion \\ \hline
+FW-008 &
+Firmware must expose an HTTP/WebSocket server on port 80 for
+direct commands: \texttt{POST /emotion}, \texttt{POST /oled},
+\texttt{POST /move}, \texttt{GET /status}. &
+Must &
+Integration Testing &
+Group Discussion \\ \hline
+\end{tabular}
+\end{center}
+
+% ====================================================================
+%            BACKEND API REQUIREMENTS
+% ====================================================================
+\newpage
+\subsection*{Backend API Requirements (FastAPI on PC / Server)}
+
+\begin{center}
+\scriptsize
+\begin{tabular}{|L{0.07\textwidth}|L{0.35\textwidth}|L{0.10\textwidth}|L{0.18\textwidth}|L{0.18\textwidth}|}
+\hline
+\textbf{Req.~ID} & \textbf{Description} & \textbf{Priority} &
+\textbf{Verification} & \textbf{Traceability} \\ \hline
+API-001 &
+FastAPI backend must receive audio from ESP32-S3, run Whisper
+STT locally, and return a text transcript within 1.5\,s. &
+Must &
+Timing Test &
+Group Discussion \\ \hline
+API-002 &
+Backend must forward the transcript to the configured LLM API
+(Groq, DeepSeek, Gemini, or local Ollama), parse the JSON
+action plan, and relay commands to the ESP32-S3. &
+Must &
+Integration Testing &
+Group Discussion \\ \hline
+API-003 &
+All tasks must be stored and synced using Firebase Realtime
+Database; the Flutter app, ESP32-S3, and FastAPI backend must
+read/write from the same Firebase project. &
+Must &
+Integration Testing &
+Group Discussion \\ \hline
+API-004 &
+Backend must expose task CRUD endpoints:
+\texttt{POST /tasks}, \texttt{GET /tasks},
+\texttt{PATCH /tasks/\{id\}}, \texttt{DELETE /tasks/\{id\}}. &
+Must &
+Functional Testing &
+Group Discussion \\ \hline
+API-005 &
+Backend must expose \texttt{POST /session/start} and
+\texttt{POST /session/end} to log study sessions with subject,
+duration, and Pomodoro count to Firebase. &
+Must &
+Functional Testing &
+Group Discussion \\ \hline
+API-006 &
+LLM API keys and Spotify credentials must be stored only in
+server environment variables; never transmitted to the Flutter
+app or ESP32-S3. &
+Must &
+Code Review / Audit &
+Regulatory Review \\ \hline
+API-007 &
+Backend must support Spotify control via Spotipy:
+\texttt{POST /spotify/play}, \texttt{POST /spotify/pause},
+and playlist selection by session state. &
+Could &
+Functional Testing &
+Group Discussion \\ \hline
+\end{tabular}
+\end{center}
+
+\vspace{0.5cm}
+
+\subsection*{Flutter Application Requirements}
+
+\begin{center}
+\scriptsize
+\begin{tabular}{|L{0.07\textwidth}|L{0.35\textwidth}|L{0.10\textwidth}|L{0.18\textwidth}|L{0.18\textwidth}|}
+\hline
+\textbf{Req.~ID} & \textbf{Description} & \textbf{Priority} &
+\textbf{Verification} & \textbf{Traceability} \\ \hline
+APP-001 &
+App must display a home dashboard with live session timer,
+current task, Pomodoro count, and Hello Buddy connection
+status. &
+Must &
+UI Testing &
+Group Discussion \\ \hline
+APP-002 &
+App must allow the user to add, edit, delete, and mark tasks
+complete; changes must sync to Firebase within 1\,s. &
+Must &
+Functional Testing &
+User Interview \\ \hline
+APP-003 &
+App must allow the user to start and stop a Pomodoro study
+session (25\,min study / 5\,min break) and send session state
+to the FastAPI backend. &
+Must &
+Functional Testing &
+Group Discussion \\ \hline
+APP-004 &
+App must provide a Hello Buddy Control panel for manually
+changing face expression, triggering a movement, and viewing
+device status. &
+Should &
+UI Demonstration &
+Group Discussion \\ \hline
+APP-005 &
+App must display a statistics screen: hours studied per day,
+task completion rate, mood log over time, and a streak
+calendar; data sourced from Firebase. &
+Should &
+Functional Testing &
+Group Discussion \\ \hline
+\end{tabular}
+\end{center}
+
+\vspace{0.3cm}
+
+For integrated systems, cross-references are maintained (e.g., FW-003 traces to
+API-002 for LLM routing; API-003 traces to APP-002 for Firebase task sync).
+
+% ====================================================================
+%            REQUIREMENTS ANALYSIS & VERIFICATION
+% ====================================================================
+\newpage
+\section*{Requirements Analysis \& Verification}
+
+\textbf{a.\ Ensure requirements are:}
+\begin{enumerate}[leftmargin=*]
+\item Clear, unambiguous, and complete.
+\item Testable (suggest acceptance criteria, e.g., ``LLM API response
+      $<$2\,s'', ``touch reaction $<$200\,ms'').
+\item Traceable (unique IDs, cross-reference design/test phases).
+\end{enumerate}
+
+\textbf{b.}\ Conduct peer reviews with group members and Faculty-in-Charge
+to validate correctness and completeness.
+
+\textbf{c.}\ Resolve conflicts (e.g., servo jitter vs.\ audio playback)
+via FreeRTOS task priority assignment and hardware PWM pin allocation.
+
+% ====================================================================
+%           ISO-COMPLIANT DOCUMENTATION STRUCTURE
+% ====================================================================
+\section*{ISO-Compliant Documentation Structure}
+
+Following ISO/IEC/IEEE 29148 template sections:
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Introduction}
+    \begin{itemize}
+    \item Purpose: Define requirements for Hello Buddy for development
+          and validation.
+    \item Scope: ESP32-S3 firmware, FastAPI backend, Firebase integration,
+          Flutter app.
+    \item Definitions: FreeRTOS, LLM API (Groq/DeepSeek/Gemini/local),
+          VL53L0X, GC9A01, DFPlayer Mini, Pomodoro.
+    \end{itemize}
+
+\item \textbf{Overall Description}
+    \begin{itemize}
+    \item Product Perspective: A stationary desktop companion combining
+          physical emotional expression with cloud-backed study assistance.
+    \item User Needs: Accountability, focus support, task management,
+          expressive interaction, and voice-activated convenience without
+          interrupting study flow.
+    \end{itemize}
+
+\item \textbf{Specific Requirements}
+    \begin{itemize}
+    \item Functional Requirements: Wake-word, proximity detection, face
+          expressions, task CRUD, Pomodoro sessions, Spotify control,
+          OLED display.
+    \item Non-Functional Requirements: Latency, battery life, concurrent
+          task stability, privacy-by-design microphone activation.
+    \item External Interface Requirements: LLM API, Firebase Realtime DB,
+          Spotify Web API, Flutter app over HTTP/WebSocket.
+    \item Design Constraints: Arduino IDE/FreeRTOS; 3.3\,V/5\,V only;
+          fits EMOtto STL body; stationary desktop design; no mains power.
+    \item Hardware Requirements: HW-001 through HW-008.
+    \item Software/Firmware/API Requirements: FW-001--FW-008,
+          API-001--API-007, APP-001--APP-005.
+    \end{itemize}
+
+\item \textbf{Control \& Retention (ISO 9001)}
+    \begin{itemize}
+    \item Maintain documented information: records, change history,
+          rationale.
+    \item Control access and versioning via shared repository.
+    \item Retain required documentation for audits and compliance.
+    \end{itemize}
+
+\item \textbf{Review \& Sign-off}
+    \begin{itemize}
+    \item Requirements specification reviewed by all key stakeholders.
+    \item Record sign-off with date and revision number.
+    \end{itemize}
+\end{enumerate}
+
+% ====================================================================
+%              SUMMARY TAXONOMY TABLE
+% ====================================================================
+\newpage
+\section*{Sample Table: Hardware and Software Requirements Taxonomy}
+
+\begin{center}
+\begin{tabular}{|L{0.23\textwidth}|L{0.30\textwidth}|L{0.37\textwidth}|}
+\hline
+\textbf{Category} & \textbf{Subcategories} &
+\textbf{Example Requirements} \\ \hline
+Hardware Requirements &
+Display, Sensors, Power, Audio, Motion &
+GC9A01 $\geq$10\,FPS; VL53L0X 10--60\,cm; LiPo $\geq$6\,h;
+DFPlayer $<$300\,ms; SG90 jitter-free PWM \\ \hline
+Firmware Requirements &
+FreeRTOS Tasks, Wake Word, GPIO &
+Concurrent task scheduling; ``Hey Buddy'' detection;
+touch $<$200\,ms response \\ \hline
+API / Cloud Requirements &
+LLM API, Firebase, Spotify, Whisper &
+LLM response $<$2\,s; Firebase sync $<$500\,ms;
+Spotify playlist control; STT $<$1.5\,s \\ \hline
+Application Requirements &
+Dashboard, Tasks, Stats, Control Panel &
+Real-time task sync; Pomodoro control; mood log;
+Hello Buddy manual control \\ \hline
+\end{tabular}
+\end{center}
+
+% ====================================================================
+%                       EVALUATION
+% ====================================================================
+\section*{Evaluation}
+
+\begin{center}
+\begin{tabular}{|L{0.35\textwidth}|L{0.45\textwidth}|}
+\hline
+\textbf{Group} & \\ \hline
+Member 1 name & Ziaur Rahaman \\ \hline
+Member 2 name & Aryan Raj \\ \hline
+Member 3 name & Ayush Dutta \\ \hline
+Member 4 name & Shamil Minhaj \\ \hline
+\end{tabular}
+\end{center}
+
+\textbf{Note:} Submit the report to FIC and upload the PDF copy of the same to
+Google Classroom after evaluation.
+
+\end{document}
